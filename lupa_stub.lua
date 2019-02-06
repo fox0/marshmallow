@@ -1,8 +1,12 @@
+--os = {}
+--coroutine = {}
+
 ---@type
 python = {}
 
 ---@param code string
-python.eval = function(code) end
+python.eval = function(code)
+end
 
 -- todo
 python.iter = 0

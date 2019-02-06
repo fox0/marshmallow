@@ -1,3 +1,6 @@
+## aptitude install python3.7 python3.7-dev
+## PYTHONASYNCIODEBUG=1
+
 lupa
 
 #pygame
