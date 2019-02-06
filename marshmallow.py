@@ -1,8 +1,6 @@
 import os.path
 import logging
-import asyncio
-from _asyncio import Task
-from concurrent.futures import ALL_COMPLETED
+from multiprocessing import Process, Queue, current_process, freeze_support, cpu_count
 
 from lupa import LuaRuntime, LuaError
 
@@ -13,48 +11,65 @@ log = logging.getLogger('marshmallow')
 DEBUG = True
 
 
-async def read_pattern(filename):
+def worker(q_in, q_out):
+    for func, args in iter(q_in.get, None):
+        try:
+            log.debug('%s run %s%s', current_process().name, func.__name__, args)
+            # tmp = threading.Thread(target=do_work, args=(id, lambda: stop_threads))
+            result = func(*args)  # todo timeout
+            q_out.put(result)
+        except BaseException:
+            log.exception('error:')
+            q_out.put(None)
+
+
+def task_read_pattern(filename):
     fn = os.path.join('patterns', filename + '.lua')
     with open(fn) as f:
-        lua = LuaRuntime(unpack_returned_tuples=False)
-        lua.execute(f.read())
-        return lua
+        return f.read()
 
 
-async def task(lua):
+def task_task(lua_code):
+    lua = LuaRuntime(unpack_returned_tuples=False)
+    try:
+        lua.execute(lua_code)
+    except LuaError as e:
+        log.error(str(e).split('\n', 1)[0])
     g = lua.globals()
-    g.main(5000000)
+    return g.main(5000000)
 
 
-async def main():
-    patterns = ('test', 'test', 'test', 'test', 'tes0t',)
-    tasks = [read_pattern(i) for i in patterns]
-    done, pending = await asyncio.wait(tasks, return_when=ALL_COMPLETED)
-    assert len(done) == len(patterns)
+def main():
+    number_cpu = cpu_count()
+    log.debug('running %d process…', number_cpu)
+    q_in, q_out = Queue(), Queue()
+    for i in range(number_cpu):
+        Process(target=worker, args=(q_in, q_out)).start()
 
-    tasks = []
-    for i in done:
-        assert isinstance(i, Task)
-        try:
-            lua = i.result()
-            tasks.append(task(lua))
-        except FileNotFoundError as e:
-            log.error(e)
-        except LuaError as e:
-            log.error(str(e).split('\n', 1)[0])
-    done, pending = await asyncio.wait(tasks, timeout=1.0, return_when=ALL_COMPLETED)
-    for i in done:
-        assert isinstance(i, Task)
-        i.result()
+    log.debug('load patterns…')
+    patterns = ('test', 'test', 'test', 'test', 'test',)
+    for i in patterns:
+        q_in.put((task_read_pattern, (i,)))  # todo delme
+    codes = []
+    for _ in range(len(patterns)):
+        r = q_out.get()
+        if r is not None:
+            codes.append(r)
 
-    if len(pending) > 0:
-        log.debug('%d task(s) failed' % len(pending))
-        for i in pending:
-            assert isinstance(i, Task)
-            i.cancel()
+    log.debug('running…')
+    for i in codes:
+        q_in.put((task_task, (i,)))
+
+    for _ in range(len(codes)):
+        print(q_out.get())
+
+    log.debug('shutdown…')
+    for i in range(number_cpu):
+        q_in.put(None)
 
 
 if __name__ == '__main__':
     logging.basicConfig(format='%(asctime)s [%(levelname)s] %(name)s %(funcName)s():%(lineno)d: %(message)s',
                         level=logging.DEBUG if DEBUG else logging.INFO)
-    asyncio.run(main(), debug=DEBUG)
+    freeze_support()  # ?
+    main()
