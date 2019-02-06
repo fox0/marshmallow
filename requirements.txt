@@ -1,0 +1,7 @@
+lupa
+
+#pygame
+#networkx
+#matplotlib
+#numpy
+#scikit-fuzzy
