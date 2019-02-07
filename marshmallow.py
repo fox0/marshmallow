@@ -1,10 +1,10 @@
 import os.path
-import time
 import logging
-from collections import namedtuple
 from multiprocessing import Process, Queue, current_process, freeze_support, cpu_count
 
 from lupa import LuaRuntime, LuaError
+
+from core.watchdog import WatchDog
 
 __version__ = '0.4.0'
 
@@ -12,12 +12,13 @@ log = logging.getLogger('marshmallow')
 
 DEBUG = True
 
-MyTask = namedtuple('MyTask', ('func', 'args'))
+TASK_TIMEOUT = 3.0
 
 
 def process_worker(q_in: Queue, q_out: Queue):
-    for func, args in iter(q_in.get, None):  # MyTask
-        # watch_dog.start()
+    watchdog = WatchDog(timeout=TASK_TIMEOUT)
+    for func, args in iter(q_in.get, None):
+        watchdog.start()
         result = None
         try:
             log.debug('%s run %s%s', current_process().name, func.__name__, args)
@@ -25,20 +26,31 @@ def process_worker(q_in: Queue, q_out: Queue):
         except BaseException:
             log.exception('error:')
         q_out.put(result)
-        # watch_dog.stop()
+        watchdog.stop()
 
 
-def run_workers(q_in, q_out):
+def main():
+    q_in, q_out = Queue(), Queue()
     number_cpu = cpu_count()
     log.debug('running %d process…', number_cpu)
     for i in range(number_cpu):
         Process(target=process_worker, args=(q_in, q_out)).start()
 
+    codes = load_patterns(q_in, q_out)
 
-def task_read_pattern(filename):
-    fn = os.path.join('patterns', filename + '.lua')
-    with open(fn) as f:
-        return f.read()
+    log.debug('running patterns…')
+    for i in codes:
+        q_in.put((task_task, (i,)))
+
+    for _ in range(len(codes)):  # todo lock
+        print(q_out.get())
+
+    log.debug('shutdown…')
+    # global is_stop
+    # is_stop = True
+    number_cpu = cpu_count()  # todo
+    for i in range(number_cpu):
+        q_in.put(None)
 
 
 def load_patterns(q_in, q_out):
@@ -46,13 +58,19 @@ def load_patterns(q_in, q_out):
     log.debug('load patterns…')
     patterns = ('test', 'test', 'test', 'test', 'test',)
     for i in patterns:
-        q_in.put(MyTask(task_read_pattern, (i,)))  # todo delme
+        q_in.put((task_read_pattern, (i,)))  # todo delme
     for _ in range(len(patterns)):
         r = q_out.get()
         if r is not None:
             result.append(r)
     assert len(result) > 0
     return result
+
+
+def task_read_pattern(filename):
+    fn = os.path.join('patterns', filename + '.lua')
+    with open(fn) as f:
+        return f.read()
 
 
 def task_task(lua_code):
@@ -63,24 +81,6 @@ def task_task(lua_code):
         log.error(str(e).split('\n', 1)[0])
     g = lua.globals()
     return g.main(5000000)
-
-
-def main():
-    q_in, q_out = Queue(), Queue()
-    run_workers(q_in, q_out)
-    codes = load_patterns(q_in, q_out)
-
-    log.debug('running patterns…')
-    for i in codes:
-        q_in.put(MyTask(task_task, (i,)))
-
-    for _ in range(len(codes)):
-        print(q_out.get())
-
-    log.debug('shutdown…')
-    number_cpu = cpu_count()  # todo
-    for i in range(number_cpu):
-        q_in.put(None)
 
 
 if __name__ == '__main__':
