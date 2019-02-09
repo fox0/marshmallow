@@ -1,7 +1,7 @@
 import logging
 from _queue import Empty
 
-from core.lupa import LuaCode
+from core.luna import LunaCode
 from core.pattern import load_patterns
 from core.worker import Workers
 
@@ -13,7 +13,7 @@ TASK_TIMEOUT = 9999999
 
 
 def run_pattern(name, lua_code, *args):
-    p = LuaCode(name, lua_code)
+    p = LunaCode(name, lua_code)
     return p.globals.main(*args)
 
 
@@ -26,10 +26,10 @@ def main():
     log.debug('running patterns…')
     for _ in range(3):
         for name, lua_code in patterns:
-            workers.q_in.put((TASK_TIMEOUT, run_pattern, (name, lua_code, 5000000)))
+            workers.q_in.put((TASK_TIMEOUT, run_pattern, (name, lua_code, 5_000_000)))
         for _ in range(len(patterns)):
             try:
-                print(workers.q_out.get(block=True, timeout=TASK_TIMEOUT * 1.5))
+                print(workers.q_out.get(block=True, timeout=5))
             except Empty:
                 print('timeout')
 

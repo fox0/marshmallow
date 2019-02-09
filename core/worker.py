@@ -20,6 +20,9 @@ class Workers(object):
         print(workers.q_out.get())
         workers.stop()
     """
+
+    __slots__ = ('q_in', 'q_out')
+
     def __init__(self):
         self.q_in = Queue()
         self.q_out = Queue()
@@ -38,7 +41,8 @@ def start_worker(q_in: Queue, q_out: Queue):
 
 
 def process_worker(q_in: Queue, q_out: Queue):
-    log.debug('%s ready', current_process().name)
+    process_name = current_process().name
+    log.debug('%s ready', process_name)
 
     def kill_self():
         start_worker(q_in, q_out)
@@ -46,15 +50,15 @@ def process_worker(q_in: Queue, q_out: Queue):
         os.kill(os.getpid(), signal.SIGKILL)
 
     for timeout, func, args in iter(q_in.get, None):
+        log.debug('%s %s%s', process_name, func.__name__, args)
         watchdog = threading.Timer(timeout, kill_self)
         watchdog.start()
         result = None
         try:
-            log.debug('%s %s%s', current_process().name, func.__name__, args)
             result = func(*args)
         except BaseException:
-            log.exception('error:')
-        q_out.put(result)
+            log.exception('')
         watchdog.cancel()
+        q_out.put(result)
 
-    log.debug('%s shutdown', current_process().name)
+    log.debug('%s shutdown', process_name)

@@ -5,7 +5,7 @@ from lupa import LuaRuntime, LuaError
 log = logging.getLogger(__name__)
 
 
-class LuaCode(object):
+class LunaCode(object):
     __slots__ = ('name', 'globals')
 
     def __init__(self, name, lua_code):

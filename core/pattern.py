@@ -1,7 +1,7 @@
 import os.path
 import logging
 
-from core.lupa import LuaCode
+from core.luna import LunaCode
 
 log = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ def load_patterns():
     """
     result = []
     init_script = 'init'
-    p = LuaCode(init_script, _load_file(init_script))
+    p = LunaCode(init_script, _load_file(init_script))
     try:
         ls = p.globals.requirements_pattern
         for name in ls.values():  # AttributeError
@@ -24,7 +24,7 @@ def load_patterns():
             except FileNotFoundError as e:
                 log.error(e)
     except AttributeError:
-        log.error('in %s not found "requirements_pattern"', init_script)
+        log.error('in %s.lua not found "requirements_pattern"', init_script)
     return result
 
 
