@@ -1,9 +1,9 @@
 ## apt-get install python3.7 python3.7-dev
 
 lupa
+numpy
+matplotlib
 
 #pygame
 #networkx
-#matplotlib
-#numpy
 #scikit-fuzzy
