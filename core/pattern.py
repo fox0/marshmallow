@@ -10,7 +10,7 @@ def load_patterns():
     """
     Ищет скрипт init.lua и подгружает остальные скрипты. Пока так.
 
-    :return: tuple вида (имя паттерна, код паттерна)
+    :return: List[Tuple[имя паттерна, код паттерна]]
     """
     result = []
     init_script = 'init'
@@ -28,6 +28,6 @@ def load_patterns():
     return result
 
 
-def _load_file(name: str):
+def _load_file(name):
     with open(os.path.join('patterns', name + '.lua')) as f:
         return f.read()
