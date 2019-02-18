@@ -41,21 +41,23 @@ def main():
     log.debug('running patterns…')
 
     lll = []
-    for name, lua_code in patterns:
-        t = TaskWorker(run_pattern, (name, lua_code, 500_000), timeout=TASK_TIMEOUT)
-        workers.add_task(t)
-    for _ in range(len(patterns)):
-        lll.append(workers.get_result(timeout=TASK_TIMEOUT))
+    for _ in range(5):
+        for name, lua_code in patterns:
+            t = TaskWorker(run_pattern, (name, lua_code, 500_000), timeout=TASK_TIMEOUT)
+            workers.add_task(t)
+    for _ in range(5):
+        for _ in range(len(patterns)):
+            lll.append(workers.get_result(timeout=TASK_TIMEOUT))
 
-    lll2 = []
-    for _ in range(4):
-        t = TaskWorker(fff, (500_000,), timeout=TASK_TIMEOUT)
-        workers.add_task(t)
-    for _ in range(4):
-        lll2.append(workers.get_result(timeout=TASK_TIMEOUT))
+    # lll2 = []
+    # for _ in range(4):
+    #     t = TaskWorker(fff, (500_000,), timeout=TASK_TIMEOUT)
+    #     workers.add_task(t)
+    # for _ in range(4):
+    #     lll2.append(workers.get_result(timeout=TASK_TIMEOUT))
 
     print(lll)
-    print(lll2)
+    # print(lll2)
 
     workers.stop()
 

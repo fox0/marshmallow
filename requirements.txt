@@ -1,6 +1,6 @@
-## apt-get install python3.7 python3.7-dev
+## apt-get install python3.7 python3.7-dev libluajit-5.1-dev
 
-lupa
+lupa --no-binary lupa
 numpy
 matplotlib
 
