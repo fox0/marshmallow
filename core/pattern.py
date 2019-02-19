@@ -1,12 +1,13 @@
 import os.path
 import logging
+from typing import Tuple, List
 
 from core.luna import LunaCode
 
 log = logging.getLogger(__name__)
 
 
-def load_patterns():
+def load_patterns() -> List[Tuple[str, str]]:
     """
     Ищет скрипт init.lua и подгружает остальные скрипты. Пока так.
 
@@ -28,6 +29,6 @@ def load_patterns():
     return result
 
 
-def _load_file(name):
+def _load_file(name: str) -> str:
     with open(os.path.join('patterns', name + '.lua')) as f:
         return f.read()

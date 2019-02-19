@@ -8,7 +8,7 @@ log = logging.getLogger(__name__)
 class LunaCode:
     __slots__ = ('name', 'globals')
 
-    def __init__(self, name, lua_code):
+    def __init__(self, name: str, lua_code: str):
         self.name = name
         lua = LuaRuntime(unpack_returned_tuples=False)
         try:

@@ -17,17 +17,15 @@ results = (
      4.099809169769287, 4.128677845001221]
 )
 
-# 0.372 ± 0.002
-# 4.245 ± 0.052
+if __name__ == '__main__':
+    fig, axes = plt.subplots(nrows=1, ncols=3, figsize=(9, 3))
+    axes[0].boxplot(results[0], labels=['luajit'], patch_artist=True)
+    axes[1].boxplot(results[1], labels=['lua'], patch_artist=True)
+    axes[2].boxplot(results[2], labels=['python'], patch_artist=True)
 
-fig, axes = plt.subplots(nrows=1, ncols=3)  # , figsize=(9, 4))
-axes[0].boxplot(results[0], labels=['luajit'], patch_artist=True)
-axes[0].set_ylabel('time, sec')
-axes[1].boxplot(results[1], labels=['lua'], patch_artist=True)
-axes[2].boxplot(results[2], labels=['python'], patch_artist=True)
+    axes[0].set_ylabel('time, sec')
+    for ax in axes:
+        ax.yaxis.grid(True)
 
-for ax in axes:
-    ax.yaxis.grid(True)
-
-# plt.show()
-plt.savefig('file.png', dpi=600)
+    # plt.show()
+    plt.savefig('file.png', dpi=600)
