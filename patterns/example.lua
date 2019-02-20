@@ -1,17 +1,20 @@
---список устройств (необязательно)
-dev = {
-    'coord',
-    'motor',
-}
+--таймаут времени выполнения паттерна (частично реализовано)
+timeout = 0.2
 
---список паттернов (необязательно)
-requirements_pattern = {
-    'common',
-}
+--главная функция
+---@field bot_state table словарь (key-value) с входными параметрами (только для чтения)
+---* и, возможно, другие параметры
+---@return table возвращает два значения:
+---* todo?
+---* и словарь изменившего внутреннего состояния.
+function main(bot_state)
+    local result = {};
+    local internal_state = {};
 
---todo дерево зависимостей паттернов? Общая память? Очереди/капалы между паттернами?
+    if bot_state.myvar == 1 then
+        table.insert(result, 'act_wait')
+        internal_state.a = 1;
+    end
 
---главная функция. Должна вернуть todo (?)
-function main()
-    return nil
+    return result, internal_state
 end

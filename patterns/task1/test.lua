@@ -1,7 +1,12 @@
-function main(size)
-    a = {}
-    b = {}
-    st = os.clock()
+function main(bot_state, size)
+    local result = {};
+    local internal_state = {};
+
+    print(bot_state.a)
+
+    local a = {}
+    local b = {}
+    local st = os.clock()
     for i = 0, size - 1 do
         a[i] = math.random(size)
     end
@@ -13,5 +18,9 @@ function main(size)
             a[i] = a[i] + b[i]
         end
     end
-    return os.clock() - st
+
+    table.insert(result, os.clock() - st)
+    internal_state.a = 1;
+
+    return result, internal_state
 end

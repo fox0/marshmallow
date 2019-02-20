@@ -10,9 +10,10 @@ log = logging.getLogger('marshmallow')
 TASK_TIMEOUT = 60.0
 
 
-def run_pattern(luna: LunaCode, *args):
+def run_pattern(luna: LunaCode, bot_state, *args):
     luna.execute()
-    return luna.globals.main(*args)
+    result, internal_state = luna.globals.main(bot_state, *args)
+    return list(result), dict(internal_state)
 
 
 def main():
@@ -24,9 +25,12 @@ def main():
     log.debug('running patterns…')
 
     lll = []
+
+    bot_state = {'a': 0}
+
     for _ in range(5):
         for luna in patterns:
-            t = TaskWorker(run_pattern, (luna, 500_000), timeout=TASK_TIMEOUT)
+            t = TaskWorker(run_pattern, (luna, bot_state, 500_000), timeout=TASK_TIMEOUT)
             workers.add_task(t)
     for _ in range(5):
         for _ in range(len(patterns)):

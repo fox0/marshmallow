@@ -25,6 +25,7 @@ class LunaCode:
     def execute(self):
         """Отложенная инициализация"""
         # потому что объект LuaRuntime нельзя передать между процессами
+        # self._state cannot be converted to a Python object for pickling
         lua = LuaRuntime(unpack_returned_tuples=False)
         self.globals = lua.globals()
 
