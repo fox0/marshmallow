@@ -4,15 +4,37 @@ from lupa import LuaRuntime, LuaError
 
 log = logging.getLogger(__name__)
 
+DIR_PATTERNS = 'patterns'
+
 
 class LunaCode:
-    __slots__ = ('name', 'globals')
+    """Враппер для выпонения lua-скритов"""
 
-    def __init__(self, name: str, lua_code: str):
+    __slots__ = ('name', 'lua_code', 'globals')
+
+    def __init__(self, name: str):
+        """
+
+        :param name: имя паттерна
+        """
         self.name = name
+        with open('%s/%s.lua' % (DIR_PATTERNS, name)) as f:
+            self.lua_code = f.read()
+        self.globals = None
+
+    def execute(self):
+        """Отложенная инициализация"""
+        # потому что объект LuaRuntime нельзя передать между процессами
         lua = LuaRuntime(unpack_returned_tuples=False)
-        try:
-            lua.execute(lua_code)
-        except LuaError as e:
-            log.error('%s %s', name, str(e).split('\n', 1)[0])
         self.globals = lua.globals()
+
+        # хак, после которого внезапно начинает работать require()
+        self.globals.package.path = '%s/?.lua;%s' % (DIR_PATTERNS, self.globals.package.path)
+
+        try:
+            lua.execute(self.lua_code)
+        except LuaError as e:
+            log.error('%s %s', self.name, str(e).split('\n', 1)[0])
+
+    def __repr__(self):
+        return "<LunaCode '%s'>" % self.name

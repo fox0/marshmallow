@@ -1,35 +1,18 @@
 import logging
 
 from core.luna import LunaCode
-from core.pattern import load_patterns
 from core.worker import Workers, TaskWorker
 
-__version__ = '0.4.1'
+__version__ = '0.4.2'
 
 log = logging.getLogger('marshmallow')
 
 TASK_TIMEOUT = 60.0
 
 
-def run_pattern(name, lua_code, *args):
-    p = LunaCode(name, lua_code)
-    return p.globals.main(*args)
-
-
-def fff(size):
-    import time
-    import random
-    st = time.time()
-    a = [random.randint(1, size) for _ in range(size)]
-    b = [random.randint(1, size) for _ in range(size)]
-
-    def test():
-        for i in range(size):
-            if a[i] != b[i]:
-                a[i] = a[i] + b[i]
-
-    test()
-    return time.time() - st
+def run_pattern(luna: LunaCode, *args):
+    luna.execute()
+    return luna.globals.main(*args)
 
 
 def main():
@@ -42,24 +25,33 @@ def main():
 
     lll = []
     for _ in range(5):
-        for name, lua_code in patterns:
-            t = TaskWorker(run_pattern, (name, lua_code, 500_000), timeout=TASK_TIMEOUT)
+        for luna in patterns:
+            t = TaskWorker(run_pattern, (luna, 500_000), timeout=TASK_TIMEOUT)
             workers.add_task(t)
     for _ in range(5):
         for _ in range(len(patterns)):
             lll.append(workers.get_result(timeout=TASK_TIMEOUT))
 
-    # lll2 = []
-    # for _ in range(4):
-    #     t = TaskWorker(fff, (500_000,), timeout=TASK_TIMEOUT)
-    #     workers.add_task(t)
-    # for _ in range(4):
-    #     lll2.append(workers.get_result(timeout=TASK_TIMEOUT))
-
     print(lll)
-    # print(lll2)
 
     workers.stop()
+
+
+def load_patterns():
+    log.debug('load_patterns')
+    result = []
+    luna = LunaCode('init')
+    luna.execute()
+    if not luna.globals.requirements_pattern:
+        log.error('in init.lua not found "requirements_pattern"')
+        return result
+    for name in luna.globals.requirements_pattern.values():
+        assert isinstance(name, str)
+        try:
+            result.append(LunaCode(name))
+        except FileNotFoundError as e:
+            log.error(e)
+    return result
 
 
 if __name__ == '__main__':
