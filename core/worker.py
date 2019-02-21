@@ -4,7 +4,7 @@ import logging
 import threading
 from multiprocessing import Process, Queue, current_process, cpu_count
 from _queue import Empty
-from typing import Callable, Any, Optional
+from typing import Callable, Any, Optional, Tuple, List, Dict
 
 log = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ class TaskWorker:
 
     __slots__ = ('func', 'args', 'timeout')
 
-    def __init__(self, func: Callable[..., float], args=(), timeout=DEFAULT_TIMEOUT):
+    def __init__(self, func: Callable[..., Tuple[List, Dict]], args=(), timeout=DEFAULT_TIMEOUT):
         self.func = func  # todo class taskresult (внутри намерения)
         self.args = args
         self.timeout = timeout

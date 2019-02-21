@@ -13,6 +13,7 @@ TASK_TIMEOUT = 60.0
 def run_pattern(luna: LunaCode, bot_state, *args):
     luna.execute()
     result, internal_state = luna.globals.main(bot_state, *args)
+    # абстракции протекают
     return list(result), dict(internal_state)
 
 
