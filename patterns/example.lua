@@ -16,12 +16,12 @@ output_fields = {
 ---* список намерений
 ---* и словарь изменившего внутреннего состояния.
 function main(bot_state)
-    local result = {};
-    local internal_state = {};
+    local result = {}
+    local internal_state = {}
 
     if bot_state.myvar == 1 then
         table.insert(result, 'act_wait')
-        internal_state.a = 1;
+        internal_state.a = 1
     end
 
     return result, internal_state

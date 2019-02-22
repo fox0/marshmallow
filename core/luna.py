@@ -8,30 +8,36 @@ DIR_PATTERNS = 'patterns'
 DEFAULT_TIMEOUT = 0.5
 
 
+def table2list(table) -> list:
+    if not table:
+        return []
+    return list(table.values())
+
+
 class LunaCode:
     """Враппер для выполнения lua-скритов"""
 
     __slots__ = ('name', 'lua_code', 'globals', 'timeout', 'input_fields', 'output_fields')
 
-    def __init__(self, name: str):
+    def __init__(self, name: str, lua_code: str = None):
         """
 
         :param name: имя паттерна
+        :param lua_code: код скрипта. Если не указано, то будет считан из файла.
         """
         self.name = name
-        with open('%s/%s.lua' % (DIR_PATTERNS, name)) as f:
-            self.lua_code = f.read()
+        if lua_code:
+            self.lua_code = lua_code
+        else:
+            with open('%s/%s.lua' % (DIR_PATTERNS, name)) as f:  # todo os.path.join
+                self.lua_code = f.read()
 
-        self.timeout = 10
-
-        # todo не работает
         # ещё один забавный хак: выполняем скрипт один раз, чтобы прочитать глобальные переменные
-        # self.execute()
-        # self.timeout = self.globals.timeout or DEFAULT_TIMEOUT
-        # self.input_fields = self.globals.input_fields or []
-        # self.output_fields = self.globals.output_fields or []
+        self.execute()
+        self.timeout = float(self.globals.timeout or DEFAULT_TIMEOUT)
+        self.input_fields = table2list(self.globals.input_fields)
+        self.output_fields = table2list(self.globals.output_fields)
         # и быстро затираем сложный объект, делая вид, что его не было
-        # del self.globals
         self.globals = None
 
     def execute(self):
@@ -53,3 +59,9 @@ class LunaCode:
 
     def __repr__(self):
         return "<LunaCode '%s' timeout=%s>" % (self.name, self.timeout)
+
+    def __eq__(self, other):
+        for i in ('name', 'lua_code', 'timeout', 'input_fields', 'output_fields'):
+            if getattr(self, i) != getattr(other, i):
+                return False
+        return True

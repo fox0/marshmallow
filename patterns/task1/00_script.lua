@@ -1,4 +1,4 @@
-timeout = 0.2
+timeout = 2.0
 
 input_fields = {
     'size',
