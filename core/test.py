@@ -14,6 +14,9 @@ class Lua(unittest.TestCase):
         self.assertEqual(r, 'Lua 5.1')
 
     def test_luajit(self):
-        r = self.lua.eval('jit.version')  # not nil
-        print(r)
+        self.assertEqual(self.lua.eval('jit == nil'), False)
+
+    def test_luajit2(self):
+        r = self.lua.eval('jit.version')
+        print(r)  # LuaJIT 2.1.0-beta3
         self.assertIn('LuaJIT', r)

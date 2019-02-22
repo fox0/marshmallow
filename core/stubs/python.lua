@@ -1,11 +1,10 @@
 --os = {}
 --coroutine = {}
 
----@type
 python = {}
 
 ---@param code string
-python.eval = function(code)
+function python.eval(code)
 end
 
 -- todo

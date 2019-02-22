@@ -1,20 +1,11 @@
 import logging
 
 from core.luna import LunaCode
-from core.worker import Workers, TaskWorker
+from core.worker import Workers
 
-__version__ = '0.4.2'
+__version__ = '0.5'
 
 log = logging.getLogger('marshmallow')
-
-TASK_TIMEOUT = 60.0
-
-
-def run_pattern(luna: LunaCode, bot_state, *args):
-    luna.execute()
-    result, internal_state = luna.globals.main(bot_state, *args)
-    # абстракции протекают
-    return list(result), dict(internal_state)
 
 
 def main():
@@ -27,15 +18,15 @@ def main():
 
     lll = []
 
-    bot_state = {'a': 0}
-
+    bot_state = {
+        'size': 500_000,
+    }
     for _ in range(5):
         for luna in patterns:
-            t = TaskWorker(run_pattern, (luna, bot_state, 500_000), timeout=TASK_TIMEOUT)
-            workers.add_task(t)
+            workers.append(luna, bot_state)
     for _ in range(5):
         for _ in range(len(patterns)):
-            lll.append(workers.get_result(timeout=TASK_TIMEOUT))
+            lll.append(workers.get_result())
 
     print(lll)
 
