@@ -19,7 +19,7 @@ class LunaCode:
 
     __slots__ = ('name', 'lua_code', 'globals', 'timeout', 'input_fields', 'output_fields')
 
-    def __init__(self, name: str, lua_code: str = None):
+    def __init__(self, name: str, lua_code: str = None, is_clean_globals: bool = True):
         """
 
         :param name: имя паттерна
@@ -37,8 +37,10 @@ class LunaCode:
         self.timeout = float(self.globals.timeout or DEFAULT_TIMEOUT)
         self.input_fields = table2list(self.globals.input_fields)
         self.output_fields = table2list(self.globals.output_fields)
+
         # и быстро затираем сложный объект, делая вид, что его не было
-        self.globals = None
+        if is_clean_globals:
+            self.globals = None
 
     def execute(self):
         """Отложенная инициализация self.globals"""

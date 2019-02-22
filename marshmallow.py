@@ -1,6 +1,6 @@
 import logging
 
-from core.luna import LunaCode
+from core.luna import LunaCode, table2list
 from core.worker import Workers
 
 __version__ = '0.5'
@@ -36,13 +36,8 @@ def main():
 def load_patterns():
     log.debug('load_patterns')
     result = []
-    luna = LunaCode('init')
-    luna.execute()
-    if not luna.globals.requirements_pattern:
-        log.error('in init.lua not found "requirements_pattern"')
-        return result
-    for name in luna.globals.requirements_pattern.values():
-        assert isinstance(name, str)
+    luna = LunaCode('init', is_clean_globals=False)
+    for name in table2list(luna.globals.requirements_pattern):
         try:
             result.append(LunaCode(name))
         except FileNotFoundError as e:
