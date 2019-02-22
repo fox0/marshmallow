@@ -36,7 +36,7 @@ def main():
 def load_patterns():
     log.debug('load_patterns')
     result = []
-    luna = LunaCode('init', is_clean_globals=False)
+    luna = LunaCode('init', is_clean_globals=False)  # todo а нужен ли он?!
     for name in table2list(luna.globals.requirements_pattern):
         try:
             result.append(LunaCode(name))

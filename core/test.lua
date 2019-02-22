@@ -16,5 +16,6 @@ function main(bot_state)
     if bot_state.var == 1 then
         internal_state.a = 1
     end
+    table.insert(result, 42)
     return result, internal_state
 end

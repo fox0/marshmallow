@@ -14,6 +14,12 @@ def table2list(table) -> list:
     return list(table.values())
 
 
+def table2dict(table) -> dict:
+    if not table:
+        return {}
+    return dict(table)
+
+
 class LunaCode:
     """Враппер для выполнения lua-скритов"""
 

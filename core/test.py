@@ -1,7 +1,7 @@
 import pickle
 import unittest
 
-from core.luna import LunaCode
+from core.luna import LunaCode, table2list, table2dict
 
 
 class TestLuaCheckInstall(unittest.TestCase):
@@ -25,11 +25,6 @@ class TestLuaCheckInstall(unittest.TestCase):
         self.assertIn('LuaJIT', r)
 
 
-# class TestLunaCode(unittest.TestCase):
-#     def test_table2list(self):
-#         luna = LunaCode('test_filename', '')
-
-
 class TestLunaCodeFile(unittest.TestCase):
     def setUp(self):
         with open('test.lua') as f:
@@ -50,5 +45,18 @@ class TestLunaCodeFile(unittest.TestCase):
     def test_global_vars3(self):
         self.assertEqual(self.luna.output_fields, ['a'])
 
-    # def test_global_execute(self):
-    #     self.luna.execute()
+    def test_global_execute(self):
+        self.luna.execute()
+        result, internal_state = self.luna.globals.main({'var': 11})
+        result = table2list(result)
+        internal_state = table2dict(internal_state)
+        self.assertEqual(result, [42])
+        self.assertEqual(internal_state, {})
+
+    def test_global_execute2(self):
+        self.luna.execute()
+        result, internal_state = self.luna.globals.main({'var': 1})
+        result = table2list(result)
+        internal_state = table2dict(internal_state)
+        self.assertEqual(result, [42])
+        self.assertEqual(internal_state, {'a': 1})
