@@ -1,33 +1,27 @@
+import os.path
 import pickle
 import unittest
+
+from lupa import LuaRuntime
 
 from core.luna import LunaCode, table2list, table2dict
 
 
 class TestLuaCheckInstall(unittest.TestCase):
-    """Тестируем что lua и luaJIT нормально установились"""
-
     def setUp(self):
-        from lupa import LuaRuntime
         self.lua = LuaRuntime()
 
-    def test_lua_version(self):
-        r = self.lua.eval('_VERSION')
-        print(r)
-        self.assertEqual(r, 'Lua 5.1')
-
     def test_luajit(self):
-        self.assertEqual(self.lua.eval('jit == nil'), False)
+        self.assertFalse(self.lua.eval('jit == nil'))
 
     def test_luajit2(self):
-        r = self.lua.eval('jit.version')
-        print(r)  # LuaJIT 2.1.0-beta3
-        self.assertIn('LuaJIT', r)
+        self.assertTrue(self.lua.eval('jit.status()')[0])
 
 
 class TestLunaCodeFile(unittest.TestCase):
     def setUp(self):
-        with open('test.lua') as f:
+        d = os.path.join(os.environ['PWD'], 'tests')
+        with open(os.path.join(d, 'test_luna.lua')) as f:
             lua_code = f.read()
         self.luna = LunaCode('test_filename', lua_code)
 
