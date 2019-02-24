@@ -23,5 +23,5 @@ function main(bot)
     end
 
     table.insert(result, os.clock() - st)
-    return result, {}
+    return result, {a=1}
 end

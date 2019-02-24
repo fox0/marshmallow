@@ -6,7 +6,7 @@ from multiprocessing import Process, Queue, current_process, cpu_count
 from _queue import Empty
 from typing import Any, Optional
 
-from core.luna import LunaCode
+from core.luna import LunaCode, table2list, table2dict
 
 log = logging.getLogger(__name__)
 
@@ -60,18 +60,15 @@ def process_worker(q_in: Queue, q_out: Queue):
         log.debug('%s run %s', process_name, luna)
         watchdog = threading.Timer(luna.timeout, kill_self)
         watchdog.start()
-        result = None
+        result = []
+        internal_state = {}
         try:
             luna.execute()
             result, internal_state = luna.globals.main(bot_state)
-            #     # абстракции протекают
-            #     return list(result), dict(internal_state)
-            #
-            # result = task.func(*task.args)
-            result = list(result), dict(internal_state)
         except BaseException:
             log.exception('')
+            # todo fail
         watchdog.cancel()
-        q_out.put(result)
+        q_out.put((table2list(result), table2dict(internal_state)))
 
     log.info('%s shutdown', process_name)

@@ -1,4 +1,4 @@
---Файл написан для теста TestLunaCodeFile
+--for TestLunaCodeFile
 
 timeout = 0.2
 

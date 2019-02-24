@@ -1,6 +1,7 @@
+import os
 import logging
 
-from lupa import LuaRuntime, LuaError
+from lupa import LuaRuntime
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +36,8 @@ class LunaCode:
         if lua_code:
             self.lua_code = lua_code
         else:
-            with open('%s/%s.lua' % (DIR_PATTERNS, name)) as f:  # todo os.path.join
+            filename = os.path.join(DIR_PATTERNS, name + '.lua')
+            with open(filename) as f:
                 self.lua_code = f.read()
 
         # ещё один забавный хак: выполняем скрипт один раз, чтобы прочитать глобальные переменные
@@ -56,14 +58,9 @@ class LunaCode:
         self.globals = lua.globals()
 
         # хак, после которого внезапно начинает работать require()
-        self.globals.package.path = ';'.join((
-            '%s/?.lua' % DIR_PATTERNS,  # todo os.path.join
-            self.globals.package.path,
-        ))
-        try:
-            lua.execute(self.lua_code)
-        except LuaError as e:
-            log.error('%s %s', self.name, str(e).split('\n', 1)[0])
+        self.globals.package.path = os.path.join(DIR_PATTERNS, '?.lua') + ';' + self.globals.package.path
+
+        lua.execute(self.lua_code)
 
     def __repr__(self):
         return "<LunaCode '%s' timeout=%s>" % (self.name, self.timeout)
@@ -73,3 +70,7 @@ class LunaCode:
             if getattr(self, i) != getattr(other, i):
                 return False
         return True
+
+#
+# def get_lunacode(name: str) -> LunaCode:
+#     return LunaCode()

@@ -1,4 +1,3 @@
-import os.path
 import pickle
 import unittest
 
@@ -20,10 +19,7 @@ class TestLuaCheckInstall(unittest.TestCase):
 
 class TestLunaCodeFile(unittest.TestCase):
     def setUp(self):
-        d = os.path.join(os.environ['PWD'], 'tests')
-        with open(os.path.join(d, 'test_luna.lua')) as f:
-            lua_code = f.read()
-        self.luna = LunaCode('test_filename', lua_code)
+        self.luna = LunaCode('', "require('test_luna')")
 
     def test_pickle(self):
         b = pickle.dumps(self.luna)
