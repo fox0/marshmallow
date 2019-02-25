@@ -50,3 +50,7 @@ class TestLunaCodeFile(unittest.TestCase):
         internal_state = table2dict(internal_state)
         self.assertEqual(result, [42])
         self.assertEqual(internal_state, {'a': 1})
+
+
+if __name__ == '__main__':
+    unittest.main()

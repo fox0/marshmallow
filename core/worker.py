@@ -3,47 +3,60 @@ import signal
 import logging
 import threading
 from multiprocessing import Process, Queue, current_process, cpu_count
-from _queue import Empty
-from typing import Any, Optional
+from multiprocessing.managers import SyncManager
+from queue import PriorityQueue
+from _queue import Empty as QueueEmpty
+from typing import Optional, Tuple, List, Dict
 
 from core.luna import LunaCode, table2list, table2dict
 
 log = logging.getLogger(__name__)
 
-# для чтения из очереди
-DEFAULT_TIMEOUT = 60
+
+class MySyncManager(SyncManager):
+    pass
+
+
+MySyncManager.register('PriorityQueue', PriorityQueue)
 
 
 class Workers:
     __slots__ = ('__q_in', '__q_out')
 
-    def __init__(self):
-        self.__q_in = Queue()  # todo очередь с приоритетами
+    def __init__(self, is_priority_queue=True):
+        if is_priority_queue:
+            m = MySyncManager()
+            m.start()
+            # noinspection PyUnresolvedReferences
+            self.__q_in = m.PriorityQueue()
+        else:
+            self.__q_in = Queue()
         self.__q_out = Queue()
 
     def start(self):
         for i in range(cpu_count()):
+            # noinspection PyTypeChecker
             start_worker(self.__q_in, self.__q_out)
 
     def stop(self):
-        for i in range(cpu_count() * 2):  # на всякий случай
-            self.__q_in.put(None)
+        for i in range(cpu_count()):
+            self.__q_in.put((0, None))
 
-    def append(self, luna: LunaCode, bot_state: dict):
-        self.__q_in.put((luna, bot_state), block=True)
+    def append(self, luna: LunaCode, bot_state: dict, priority=0):
+        self.__q_in.put((priority, (luna, bot_state)), block=True)
 
-    def get_result(self, timeout=DEFAULT_TIMEOUT) -> Optional[Any]:
+    def get_result(self, timeout=30) -> Optional[Tuple[List, Dict]]:
         try:
             return self.__q_out.get(block=True, timeout=timeout + 0.05)
-        except Empty:
+        except QueueEmpty:
             return None
 
 
-def start_worker(q_in: Queue, q_out: Queue):
+def start_worker(q_in: PriorityQueue, q_out: Queue):
     Process(target=process_worker, args=(q_in, q_out)).start()
 
 
-def process_worker(q_in: Queue, q_out: Queue):
+def process_worker(q_in: PriorityQueue, q_out: Queue):
     """Процесс-воркер"""
     process_name = current_process().name
     log.info('%s ready', process_name)
@@ -53,11 +66,16 @@ def process_worker(q_in: Queue, q_out: Queue):
         log.error('worker will kill by timeout')
         os.kill(os.getpid(), signal.SIGKILL)
 
-    for luna, bot_state in iter(q_in.get, None):
+    while True:
+        priority, item = q_in.get()
+        if item is None:
+            break
+
+        luna, bot_state = item
         assert isinstance(luna, LunaCode)
         # todo bot_state??????
 
-        log.debug('%s run %s', process_name, luna)
+        log.debug('%s run [%d] %s', process_name, priority, luna)
         watchdog = threading.Timer(luna.timeout, kill_self)
         watchdog.start()
         result = []
