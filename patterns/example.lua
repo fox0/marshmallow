@@ -22,6 +22,7 @@ function main(bot_state)
     local result = {}
     local internal_state = {}
 
+    --KeyError
     if bot_state.myvar == 1 then
         table.insert(result, 'act_wait')
         internal_state.a = 1

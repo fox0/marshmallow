@@ -25,7 +25,7 @@ def table2dict(table) -> dict:
 class LunaCode:
     """Враппер для выполнения lua-скритов"""
 
-    __slots__ = ('name', 'lua_code', 'globals', 'timeout', 'priority', 'input_fields', 'output_fields')
+    __slots__ = ('name', 'lua_code', 'timeout', 'priority', 'input_fields', 'output_fields', 'globals')
 
     def __init__(self, name: str, lua_code: str, is_clean_globals: bool = True):
         self.name = name

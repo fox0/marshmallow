@@ -11,24 +11,35 @@ log = logging.getLogger('marshmallow')
 def main():
     workers = Workers()
     workers.start()
-
     patterns = load_patterns()
-
     log.debug('running patterns…')
-
-    lll = []
 
     bot_state = {
         'size': 500_000,
     }
-    for _ in range(5):
-        for luna in patterns:
-            workers.append(luna, bot_state)
-    for _ in range(5):
-        for _ in range(len(patterns)):
-            lll.append(workers.get_result())
+    for _ in range(2):
+        log.debug('bot_state: %s', bot_state)
+        for _ in range(5):
+            for luna in patterns:
+                workers.append(luna, bot_state)
 
-    print(lll)
+        acts, internal_state = [], []
+        for _ in range(5):
+            for _ in range(len(patterns)):
+                a, s = workers.get_result()
+                assert isinstance(a, list)
+                assert isinstance(s, dict)
+                acts.extend(a)
+                internal_state.append(s)
+        log.debug('acts: %s', acts)
+        updated_fields = []
+        for i in internal_state:
+            for k, v in i.items():
+                bot_state[k] = v
+                if k in updated_fields:
+                    log.warning("key '%s' in bot_state already was update", k)
+                else:
+                    updated_fields.append(k)
 
     workers.stop()
 
