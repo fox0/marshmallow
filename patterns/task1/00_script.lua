@@ -1,5 +1,7 @@
 timeout = 2.0
 
+priority = 1
+
 input_fields = {
     'size',
 }
@@ -23,5 +25,5 @@ function main(bot)
     end
 
     table.insert(result, os.clock() - st)
-    return result, {a=1}
+    return result, { a = 1 }
 end

@@ -29,6 +29,9 @@ class TestLunaCodeFile(unittest.TestCase):
     def test_global_vars(self):
         self.assertEqual(self.luna.timeout, 0.2)
 
+    def test_global_vars1(self):
+        self.assertEqual(self.luna.priority, 1)
+
     def test_global_vars2(self):
         self.assertEqual(self.luna.input_fields, ['var'])
 

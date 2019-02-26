@@ -6,7 +6,7 @@ from multiprocessing import Process, Queue, current_process, cpu_count
 from multiprocessing.managers import SyncManager
 from queue import PriorityQueue
 from _queue import Empty as QueueEmpty
-from typing import Optional, Tuple, List, Dict
+from typing import Tuple, List, Dict
 
 from core.luna import LunaCode, table2list, table2dict
 
@@ -23,33 +23,31 @@ MySyncManager.register('PriorityQueue', PriorityQueue)
 class Workers:
     __slots__ = ('__q_in', '__q_out')
 
-    def __init__(self, is_priority_queue=True):
-        if is_priority_queue:
-            m = MySyncManager()
-            m.start()
-            # noinspection PyUnresolvedReferences
-            self.__q_in = m.PriorityQueue()
-        else:
-            self.__q_in = Queue()
+    def __init__(self):
+        m = MySyncManager()
+        m.start()
+        # noinspection PyUnresolvedReferences
+        self.__q_in = m.PriorityQueue()
         self.__q_out = Queue()
 
     def start(self):
         for i in range(cpu_count()):
-            # noinspection PyTypeChecker
             start_worker(self.__q_in, self.__q_out)
 
     def stop(self):
         for i in range(cpu_count()):
             self.__q_in.put((0, None))
 
-    def append(self, luna: LunaCode, bot_state: dict, priority=0):
-        self.__q_in.put((priority, (luna, bot_state)), block=True)
+    def append(self, luna: LunaCode, bot_state: dict):
+        # очередь с приоритетами
+        self.__q_in.put((luna.priority, (luna, bot_state)), block=True)
 
-    def get_result(self, timeout=30) -> Optional[Tuple[List, Dict]]:
+    def get_result(self) -> Tuple[List, Dict]:
         try:
-            return self.__q_out.get(block=True, timeout=timeout + 0.05)
+            return self.__q_out.get(block=True)  # , timeout=timeout + 0.05)
         except QueueEmpty:
-            return None
+            # todo как-то пробрасывать код ошибки выше
+            return [], {}
 
 
 def start_worker(q_in: PriorityQueue, q_out: Queue):
@@ -67,25 +65,23 @@ def process_worker(q_in: PriorityQueue, q_out: Queue):
         os.kill(os.getpid(), signal.SIGKILL)
 
     while True:
-        priority, item = q_in.get()
+        _, item = q_in.get()
         if item is None:
             break
 
         luna, bot_state = item
         assert isinstance(luna, LunaCode)
-        # todo bot_state??????
-
-        log.debug('%s run [%d] %s', process_name, priority, luna)
+        log.debug('%s run %s', process_name, luna)
         watchdog = threading.Timer(luna.timeout, kill_self)
         watchdog.start()
-        result = []
-        internal_state = {}
+        result, internal_state = [], {}
+        # noinspection PyBroadException
         try:
             luna.execute()
             result, internal_state = luna.globals.main(bot_state)
         except BaseException:
             log.exception('')
-            # todo fail
+            # todo как-то пробрасывать код ошибки выше
         watchdog.cancel()
         q_out.put((table2list(result), table2dict(internal_state)))
 

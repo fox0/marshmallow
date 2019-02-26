@@ -1,9 +1,9 @@
 import logging
 
-from core.luna import LunaCode, table2list
+from core.luna import get_lunacode, table2list
 from core.worker import Workers
 
-__version__ = '0.5'
+__version__ = '0.5.1'
 
 log = logging.getLogger('marshmallow')
 
@@ -36,10 +36,10 @@ def main():
 def load_patterns():
     log.debug('load_patterns')
     result = []
-    luna = LunaCode('init', is_clean_globals=False)  # todo а нужен ли он?!
+    luna = get_lunacode('init', is_clean_globals=False)  # todo а нужен ли он?!
     for name in table2list(luna.globals.requirements_pattern):
         try:
-            result.append(LunaCode(name))
+            result.append(get_lunacode(name))
         except FileNotFoundError as e:
             log.error(e)
     return result

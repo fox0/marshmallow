@@ -2,6 +2,8 @@
 
 timeout = 0.2
 
+priority = 1
+
 input_fields = {
     'var',
 }

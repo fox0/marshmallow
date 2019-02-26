@@ -7,6 +7,7 @@ log = logging.getLogger(__name__)
 
 DIR_PATTERNS = 'patterns'
 DEFAULT_TIMEOUT = 0.5
+DEFAULT_PRIORITY = 0
 
 
 def table2list(table) -> list:
@@ -24,25 +25,16 @@ def table2dict(table) -> dict:
 class LunaCode:
     """Враппер для выполнения lua-скритов"""
 
-    __slots__ = ('name', 'lua_code', 'globals', 'timeout', 'input_fields', 'output_fields')
+    __slots__ = ('name', 'lua_code', 'globals', 'timeout', 'priority', 'input_fields', 'output_fields')
 
-    def __init__(self, name: str, lua_code: str = None, is_clean_globals: bool = True):
-        """
-
-        :param name: имя паттерна
-        :param lua_code: код скрипта. Если не указано, то будет считан из файла.
-        """
+    def __init__(self, name: str, lua_code: str, is_clean_globals: bool = True):
         self.name = name
-        if lua_code:
-            self.lua_code = lua_code
-        else:
-            filename = os.path.join(DIR_PATTERNS, name + '.lua')
-            with open(filename) as f:
-                self.lua_code = f.read()
+        self.lua_code = lua_code
 
         # ещё один забавный хак: выполняем скрипт один раз, чтобы прочитать глобальные переменные
         self.execute()
         self.timeout = float(self.globals.timeout or DEFAULT_TIMEOUT)
+        self.priority = int(self.globals.priority or DEFAULT_PRIORITY)
         self.input_fields = table2list(self.globals.input_fields)
         self.output_fields = table2list(self.globals.output_fields)
 
@@ -54,6 +46,8 @@ class LunaCode:
         """Отложенная инициализация self.globals"""
         # потому что объект LuaRuntime нельзя передать между процессами
         # lua._state cannot be converted to a Python object for pickling
+
+        # noinspection PyArgumentList
         lua = LuaRuntime(unpack_returned_tuples=False)
         self.globals = lua.globals()
 
@@ -63,14 +57,18 @@ class LunaCode:
         lua.execute(self.lua_code)
 
     def __repr__(self):
-        return "<LunaCode '%s' timeout=%s>" % (self.name, self.timeout)
+        return "<LunaCode [%d] '%s' timeout=%s>" % (self.priority, self.name, self.timeout)
 
     def __eq__(self, other):
-        for i in ('name', 'lua_code', 'timeout', 'input_fields', 'output_fields'):
+        # for tests
+        for i in ('name', 'lua_code', 'timeout', 'priority', 'input_fields', 'output_fields'):
             if getattr(self, i) != getattr(other, i):
                 return False
         return True
 
-#
-# def get_lunacode(name: str) -> LunaCode:
-#     return LunaCode()
+
+def get_lunacode(name: str, is_clean_globals=True) -> LunaCode:
+    filename = os.path.join(DIR_PATTERNS, name + '.lua')
+    with open(filename) as f:
+        lua_code = f.read()
+    return LunaCode(name, lua_code, is_clean_globals)
