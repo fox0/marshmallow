@@ -1,3 +1,6 @@
+#  Copyright (c) 2019. fox0 https://github.com/fox0/
+
+# pylint: disable=missing-docstring, invalid-name
 import logging
 
 from core.luna import get_lunacode, table2list
@@ -5,7 +8,7 @@ from core.worker import Workers
 
 __version__ = '0.5.1'
 
-log = logging.getLogger('marshmallow')
+log = logging.getLogger('marshmallow')  # pylint: disable=invalid-name
 
 
 def main():

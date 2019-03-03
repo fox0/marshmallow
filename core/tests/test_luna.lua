@@ -1,4 +1,4 @@
---for TestLunaCodeFile
+--  Copyright (c) 2019. fox0 https://github.com/fox0/
 
 timeout = 0.2
 

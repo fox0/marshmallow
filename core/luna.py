@@ -1,9 +1,16 @@
-import os
+"""
+Модуль для работы с языком lua
+"""
+#  Copyright (c) 2019. fox0 https://github.com/fox0/
+
 import logging
+# pylint: disable=trailing-whitespace
+import os
 
-from lupa import LuaRuntime
+# noinspection PyPackageRequirements
+from lupa import LuaRuntime  # pylint: disable=no-name-in-module
 
-log = logging.getLogger(__name__)
+log = logging.getLogger(__name__)  # pylint: disable=invalid-name
 
 DIR_PATTERNS = 'patterns'
 DEFAULT_TIMEOUT = 0.5
@@ -11,12 +18,14 @@ DEFAULT_PRIORITY = 0
 
 
 def table2list(table) -> list:
+    """LuaTable to list"""
     if not table:
         return []
     return list(table.values())
 
 
 def table2dict(table) -> dict:
+    """LuaTable to dict"""
     if not table:
         return {}
     return dict(table)
@@ -28,6 +37,12 @@ class LunaCode:
     __slots__ = ('name', 'lua_code', 'timeout', 'priority', 'input_fields', 'output_fields', 'globals')
 
     def __init__(self, name: str, lua_code: str, is_clean_globals: bool = True):
+        """
+
+        :param name: Уникальный идентификатор
+        :param lua_code: Исходный код на lua
+        :param is_clean_globals:
+        """
         self.name = name
         self.lua_code = lua_code
 
@@ -68,7 +83,14 @@ class LunaCode:
 
 
 def get_lunacode(name: str, is_clean_globals=True) -> LunaCode:
+    """
+    Фабрика по созданию объектов LunaCode
+
+    :param name: Имя паттерна
+    :param is_clean_globals:
+    :return: объект
+    """
     filename = os.path.join(DIR_PATTERNS, name + '.lua')
-    with open(filename) as f:
+    with open(filename) as f:  # pylint: disable=invalid-name
         lua_code = f.read()
     return LunaCode(name, lua_code, is_clean_globals)

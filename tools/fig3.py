@@ -1,7 +1,14 @@
+"""
+Сравнение производительности разных языков
+"""
+#  Copyright (c) 2019. fox0 https://github.com/fox0/
+
+# pylint: disable=invalid-name
 import sys
+
 import matplotlib.pyplot as plt
 
-results = (
+LS = (
     [4.20625114440918, 4.224375486373901, 4.248250246047974, 4.347381353378296, 4.199478387832642, 4.235505819320679,
      4.303748607635498, 4.3934876918792725, 4.224132299423218, 4.225331783294678, 4.272314071655273, 4.473704814910889,
      4.205407381057739, 4.216601610183716, 4.298672199249268, 4.4485437870025635, 4.060807943344116, 4.086096286773682,
@@ -14,12 +21,12 @@ results = (
      0.030427999999999997, 0.033770999999999995, 0.030701000000000006, 0.030483999999999997, 0.03083899999999999,
      0.030501, 0.03200499999999998, 0.03200800000000001, 0.03000899999999998],
 )
-labels = ('python', 'lua', 'luaJIT')
+LABELS = ('python', 'lua', 'luaJIT')
 
 if __name__ == '__main__':
-    fig, axes = plt.subplots(nrows=1, ncols=len(results), figsize=(9, 3))
+    fig, axes = plt.subplots(nrows=1, ncols=len(LS), figsize=(9, 3))
 
-    for ax, ls, label in zip(axes, results, labels):
+    for ax, ls, label in zip(axes, LS, LABELS):
         ax.boxplot([ls], labels=[label], patch_artist=True)
         ax.yaxis.grid(True)
 

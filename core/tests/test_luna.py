@@ -1,6 +1,10 @@
+#  Copyright (c) 2019. fox0 https://github.com/fox0/
+
+# pylint: skip-file
 import pickle
 import unittest
 
+# noinspection PyPackageRequirements
 from lupa import LuaRuntime
 
 from core.luna import LunaCode, table2list, table2dict
